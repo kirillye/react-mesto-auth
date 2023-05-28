@@ -158,7 +158,7 @@ function App() {
             email: res.data.email,
           });
           setLoggedIn(true);
-          navigate("/home", { replace: true });
+          navigate("/", { replace: true });
         }
       });
     }
@@ -188,7 +188,7 @@ function App() {
         setUserData({
           email: userEmail,
         });
-        navigate("/home", { replace: true });
+        navigate("/", { replace: true });
       }
     });
   };
@@ -272,7 +272,7 @@ function App() {
       />
       <Routes>
         <Route
-          path="/home"
+          path="/"
           element={
             <ProtectedRoute
               loggedIn={loggedIn}
@@ -351,7 +351,7 @@ function App() {
           path="/"
           element={
             loggedIn ? (
-              <Navigate to="/home" replace />
+              <Navigate to="/" replace />
             ) : (
               <Navigate to="/sign-in" replace />
             )
