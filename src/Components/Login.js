@@ -20,7 +20,10 @@ export default function Login({ handleLogin }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     handleLogin(formValue)
-      .then(() => {
+      .then((res) => {
+        if (typeof res && res?.includes("Ошибка")) {
+          return;
+        }
         setFormValue({ userEmail: "", userPassword: "" });
       })
       .catch((err) => {

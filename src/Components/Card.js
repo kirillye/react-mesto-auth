@@ -38,7 +38,7 @@ function Card({
       )}
       <img
         src={item.link}
-        alt="Картинка записи"
+        alt={item.name}
         className="articles__image"
         onClick={handleClick}
       />

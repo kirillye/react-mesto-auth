@@ -1,6 +1,9 @@
 import React from "react";
+
 import PopupWithForm from "./PopupWithForm";
+
 import { useState, useEffect } from "react";
+
 import { CurrentUserContext } from "../contexts/CurrentUserContext";
 
 export default function EditProfilePopup({
@@ -17,12 +20,14 @@ export default function EditProfilePopup({
     falidField: true,
     textError: "",
   });
+
   const [aboutFieldError, setAboutFieldError] = useState({
     falidField: true,
+
     textError: "",
   });
-  const currentUser = React.useContext(CurrentUserContext);
 
+  const currentUser = React.useContext(CurrentUserContext);
   function handleSubmit(e) {
     e.preventDefault();
     onUpdateUser({
@@ -37,15 +42,23 @@ export default function EditProfilePopup({
     setAboutFieldError({ textError: "", falidField: true });
   }
 
-  useEffect(() => {
-    if (nameFieldError.falidField && aboutFieldError.falidField) {
-      setFormValid(false);
-    } else {
+  function check() {
+    if (!nameFieldError.falidField || !aboutFieldError.falidField) {
       setFormValid(true);
+    } else {
+      setFormValid(false);
     }
+  }
+
+  useEffect(() => {
     setName(currentUser.name);
     setDescription(currentUser.about);
-  }, [currentUser, nameFieldError.falidField, aboutFieldError.falidField]);
+    check();
+  }, [currentUser]);
+
+  useEffect(() => {
+    check();
+  }, [nameFieldError.falidField, aboutFieldError.falidField]);
 
   return (
     <PopupWithForm
@@ -61,7 +74,7 @@ export default function EditProfilePopup({
         <div className="form__item">
           <input
             name="userName"
-            value={name || ""}
+            value={name}
             onChange={(e) => {
               checkField(e, 2, 40, setNameFieldError);
               setName(e.target.value);
@@ -72,14 +85,16 @@ export default function EditProfilePopup({
             minLength={2}
             maxLength={40}
           />
+
           <span className="popup__form-item-error popup__form-item-error_field_userName">
             {nameFieldError.textError}
           </span>
         </div>
+
         <div className="form__item">
           <input
             name="userJob"
-            value={description || ""}
+            value={description}
             onChange={(e) => {
               setDescription(e.target.value);
               checkField(e, 2, 200, setAboutFieldError);
@@ -90,6 +105,7 @@ export default function EditProfilePopup({
             minLength={2}
             maxLength={200}
           />
+
           <span className="popup__form-item-error popup__form-item-error_field_userJob">
             {aboutFieldError.textError}
           </span>

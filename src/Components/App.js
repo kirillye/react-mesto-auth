@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import mainLogo from "../img/logo.svg";
 import userAvatar from "../img/Avatar.png";
+import iconSeccessfull from "../img/SeccessfullIcon.svg";
+import badIcon from "../img/badIcon.svg";
 import { api } from "../utils/Api.js";
 import { authentication } from "../utils/authentication.js";
 import { CurrentUserContext } from "../contexts/CurrentUserContext";
@@ -17,6 +19,7 @@ import Login from "./Login";
 import Register from "./Register";
 import ProtectedRoute from "./ProtectedRoute ";
 import Spinner from "./Spinner.js";
+import InfoTooltip from "./InfoTooltip";
 
 function App() {
   const [cards, setCards] = useState([]);
@@ -25,6 +28,7 @@ function App() {
   const [isAddPlacePopupOpen, openAddPlace] = useState(false);
   const [isImagePopupOpen, openImagePopup] = useState(false);
   const [isAcceptPopupOpen, openAcceptPopup] = useState(false);
+  const [isNotificationPupupOpen, setIsNotificationPupupOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState({});
   const [loggedIn, setLoggedIn] = useState(false);
   const [userData, setUserData] = useState({
@@ -34,18 +38,13 @@ function App() {
   const [selectedCard, setSelectCard] = useState({ name: "", link: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingForm, setIsLoadingForm] = useState(false);
+  const [regStatus, setRegStatus] = useState({
+    messageError: "",
+    isError: true,
+  });
   const httpRegex =
     /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/;
   const navigate = useNavigate();
-
-  function closeAllPopups() {
-    openEditAvatar(false);
-    openEditProfile(false);
-    openAddPlace(false);
-    openImagePopup(false);
-    setSelectCard({ name: "", link: "" });
-    openAcceptPopup(false);
-  }
 
   function handleCardsChange(data) {
     setCards(data);
@@ -124,6 +123,18 @@ function App() {
       });
   }
 
+  // ============ Функции управления попапами =======================
+
+  function closeAllPopups() {
+    openEditAvatar(false);
+    openEditProfile(false);
+    openAddPlace(false);
+    openImagePopup(false);
+    setSelectCard({ name: "", link: "" });
+    openAcceptPopup(false);
+    setIsNotificationPupupOpen(false);
+  }
+
   function handleEditAvatarClick(e) {
     openEditAvatar(true);
   }
@@ -151,16 +162,18 @@ function App() {
   const tokenCheck = () => {
     if (localStorage.getItem("jwt")) {
       const jwt = localStorage.getItem("jwt");
-
-      authentication.tokenCheck(jwt).then((res) => {
-        if (res) {
-          setUserData({
-            email: res.data.email,
-          });
-          setLoggedIn(true);
-          navigate("/", { replace: true });
-        }
-      });
+      authentication
+        .tokenCheck(jwt)
+        .then((res) => {
+          if (res) {
+            setUserData({
+              email: res.data.email,
+            });
+            setLoggedIn(true);
+            navigate("/", { replace: true });
+          }
+        })
+        .catch((err) => console.log(err));
     }
   };
 
@@ -174,23 +187,47 @@ function App() {
   };
 
   const handleRegister = ({ userEmail, userPassword }) => {
-    return authentication.signUp(userEmail, userPassword).then((res) => {
-      console.log("Регистрация...");
-      localStorage.setItem("token", res.data._id);
-    });
+    return authentication
+      .signUp(userEmail, userPassword)
+      .then((res) => {
+        localStorage.setItem("token", res.data._id);
+        setRegStatus({
+          messageError: "",
+          isError: false,
+        });
+        setIsNotificationPupupOpen(true);
+        setTimeout(() => {
+          setIsNotificationPupupOpen(false);
+          navigate("/sign-in", { replace: true });
+        }, 1000);
+      })
+      .catch((err) => {
+        setRegStatus({
+          messageError: "",
+          isError: true,
+        });
+        setIsNotificationPupupOpen(true);
+        return err;
+      });
   };
 
   const handleLogin = ({ userEmail, userPassword }) => {
-    return authentication.signIn(userEmail, userPassword).then((res) => {
-      if (res.token) {
-        localStorage.setItem("jwt", res.token);
-        setLoggedIn(true);
-        setUserData({
-          email: userEmail,
-        });
-        navigate("/", { replace: true });
-      }
-    });
+    return authentication
+      .signIn(userEmail, userPassword)
+      .then((res) => {
+        if (res.token) {
+          localStorage.setItem("jwt", res.token);
+          setLoggedIn(true);
+          setUserData({
+            email: userEmail,
+          });
+          navigate("/", { replace: true });
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        return err;
+      });
   };
 
   // ============== Функции валидации форм ==============
@@ -331,7 +368,18 @@ function App() {
         />
         <Route
           path="/sign-up"
-          element={<Register handleRegister={handleRegister} />}
+          element={
+            <>
+              <Register handleRegister={handleRegister} />
+              <InfoTooltip
+                isSeccessfull={!regStatus.isError}
+                iconSeccessfull={iconSeccessfull}
+                badIcon={badIcon}
+                isOpen={isNotificationPupupOpen}
+                onClose={closeAllPopups}
+              />
+            </>
+          }
         />
         <Route path="/sign-in" element={<Login handleLogin={handleLogin} />} />
         <Route

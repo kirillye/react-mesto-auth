@@ -1,8 +1,5 @@
 import React, { useState } from "react";
 import FormLog from "./FormLog";
-import InfoTooltip from "./InfoTooltip";
-import iconSeccessfull from "../img/SeccessfullIcon.svg";
-import badIcon from "../img/badIcon.svg";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Register({ handleRegister }) {
@@ -10,11 +7,6 @@ export default function Register({ handleRegister }) {
     userEmail: "",
     userPassword: "",
   });
-  const [regStatus, setRegStatus] = useState({
-    messageError: "",
-    isError: true,
-  });
-  const [isOpenPupup, setIsOpenPupup] = useState(false);
   const navigate = useNavigate();
 
   function handleChange(e) {
@@ -32,23 +24,14 @@ export default function Register({ handleRegister }) {
       return;
     }
     handleRegister(formValue)
-      .then(() => {
+      .then((res) => {
+        if (typeof res && res?.includes("Ошибка")) {
+          return;
+        }
         setFormValue({ userEmail: "", userPassword: "" });
-        setRegStatus({
-          messageError: "",
-          isError: false,
-        });
-        setIsOpenPupup(true);
-        setTimeout(() => {
-          navigate("/sign-in", { replace: true });
-        }, 1000);
       })
       .catch((err) => {
-        setRegStatus({
-          messageError: err,
-          isError: true,
-        });
-        setIsOpenPupup(true);
+        console.log(err);
       });
   };
 
@@ -66,15 +49,6 @@ export default function Register({ handleRegister }) {
             Уже зарегистрированы? Войти
           </Link>
         </button>
-        <InfoTooltip
-          isSeccessfull={!regStatus.isError}
-          iconSeccessfull={iconSeccessfull}
-          badIcon={badIcon}
-          isOpen={isOpenPupup}
-          onClose={() => {
-            setIsOpenPupup(false);
-          }}
-        />
       </section>
     </main>
   );
